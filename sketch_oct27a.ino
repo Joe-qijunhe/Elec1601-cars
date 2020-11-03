@@ -33,7 +33,7 @@ void loop() {
   }
 }
 int irDetect(int irLedPin, int irReceiverPin  , long frequency) {
-  tone(irLedPin, frequency, 0);
+  tone(irLedPin, frequency, 8);
   delay(1);
   int ir = digitalRead(irReceiverPin);
   delay(1);
