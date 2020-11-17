@@ -19,6 +19,9 @@ String slaveNameCmd = "\r\n+STNA=Slave";   // This is concatenated with shieldPa
 
 SoftwareSerial blueToothSerial(RxD,TxD);
 
+char path[600];
+int index = 0;
+int terminate = 0;
 
 void setup() {
     Serial.begin(9600);
@@ -57,36 +60,60 @@ void loop() {
     char recvChar;
     servoLeft.attach(13);
     servoRight.attach(12);
-    while(1)
+    int obstacle = 1;
+    while(obstacle == 1)
     {
         if(blueToothSerial.available())   // Check if there's any data sent from the remote Bluetooth shield
         {
             recvChar = blueToothSerial.read();
-            Serial.println(recvChar);
-            //forward
-            if(recvChar == "w"){
-              servoLeft.writeMicroseconds(1700);
-              servoRight.writeMicroseconds(1300);
-              delay(3000);
-            }
-            //backward
-            else if (recvChar == "s"){
-              servoLeft.writeMicroseconds(1300);
-              servoRight.writeMicroseconds(1700);
-              delay(3000);
-            }
+            servoLeft.writeMicroseconds(1700);
+            servoRight.writeMicroseconds(1300);
+
             //forward-left
-            else if (recvChar == "a"){
+            if (recvChar == 'q'){
+              path[index] = 'q';
+              index += 1;
               servoLeft.writeMicroseconds(1500);
               servoRight.writeMicroseconds(1300);
-              delay(3000);
+              delay(300);
             }
             //forward-right
-            else if (recvChar == "d"){
+            else if (recvChar == 'w'){
+              path[index] = 'w';
+              index += 1;
               servoLeft.writeMicroseconds(1700);
               servoRight.writeMicroseconds(1500);
-              delay(3000);
+              delay(300);
             }
+            //back-left
+            else if (recvChar == 'e'){
+              path[index] = 'e';
+              index += 1;
+              servoLeft.writeMicroseconds(1500);
+              servoRight.writeMicroseconds(1700);
+              delay(300);
+              servoLeft.writeMicroseconds(1300);
+              servoRight.writeMicroseconds(1700);
+              delay(300);
+            }
+            //back-right
+            else if (recvChar == 'r'){
+              path[index] = 'r';
+              index += 1;
+              servoLeft.writeMicroseconds(1300);
+              servoRight.writeMicroseconds(1500);
+              delay(300);
+              servoLeft.writeMicroseconds(1300);
+              servoRight.writeMicroseconds(1700);
+              delay(300);
+            }
+              else if (recvChar == 'g'){
+              obstacle = 0;
+            }
+            else{
+              path[index] = ' ';
+              index += 1;
+              }
        }
 
         if(Serial.available())            // Check if there's any data sent from the local serial terminal. You can add the other applications here.
@@ -96,6 +123,68 @@ void loop() {
             blueToothSerial.print(recvChar);
         }
     }
+    if (obstacle == 0){
+      int irLeft = irDetect(9, 10, 38000);
+      int irRight = irDetect(2, 3, 38000);
+      //move forward
+      if (irLeft == 1 && irRight == 1){
+          servoLeft.writeMicroseconds(1525);
+          servoRight.writeMicroseconds(1475);
+          delay(100);
+      }
+      //move right
+      else if (irLeft == 1 && irRight==0){
+              servoLeft.writeMicroseconds(1700);
+              servoRight.writeMicroseconds(1500);
+              delay(300);
+      }
+      //move left
+      else if (irLeft == 0 && irRight == 1){
+              servoLeft.writeMicroseconds(1500);
+              servoRight.writeMicroseconds(1300);
+              delay(300);
+        }
+      //stop
+      else if (irLeft == 0 && irRight == 0){
+          servoLeft.writeMicroseconds(1500);
+          servoRight.writeMicroseconds(1500);
+          terminate += 1;
+        }
+    }
+    if (terminate == 2){
+        for (int i=0; i<=index; i++){
+            if(path [i] == ' '){
+            servoLeft.writeMicroseconds(1700);
+            servoRight.writeMicroseconds(1300);
+            }
+            else if(path[i] == 'q'){
+              servoLeft.writeMicroseconds(1700);
+              servoRight.writeMicroseconds(1500);
+              delay(300);
+              }
+             else if (path[i] == 'w'){
+              servoLeft.writeMicroseconds(1500);
+              servoRight.writeMicroseconds(1300);
+              delay(300);
+              }
+             else if (path[i] == 'e'){
+              servoLeft.writeMicroseconds(1300);
+              servoRight.writeMicroseconds(1500);
+              delay(300);
+              servoLeft.writeMicroseconds(1300);
+              servoRight.writeMicroseconds(1700);
+              delay(300);
+              }
+              else if (path[i] == 'r'){
+              servoLeft.writeMicroseconds(1500);
+              servoRight.writeMicroseconds(1700);
+              delay(300);
+              servoLeft.writeMicroseconds(1300);
+              servoRight.writeMicroseconds(1700);
+              delay(300);
+                }
+          }
+      }
 }
 
 void setupBlueToothConnection()
