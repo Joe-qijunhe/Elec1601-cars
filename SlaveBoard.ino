@@ -215,3 +215,10 @@ void setupBlueToothConnection()
     
     Serial.println("The slave bluetooth is inquirable!");
 }
+int irDetect(int irLedPin, int irReceiverPin  , long frequency) {
+  tone(irLedPin, frequency, 8);
+  delay(1);
+  int ir = digitalRead(irReceiverPin);
+  delay(1);
+  return ir;
+}
