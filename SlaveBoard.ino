@@ -21,7 +21,9 @@ SoftwareSerial blueToothSerial(RxD,TxD);
 
 char path[600];
 int index = 0;
-int terminate = 0;
+int obstacle = 1;
+int back = 0;
+int i =0;
 
 void setup() {
     Serial.begin(9600);
@@ -56,11 +58,11 @@ void setup() {
 
 }
 
+
 void loop() {
     char recvChar;
     servoLeft.attach(13);
     servoRight.attach(12);
-    int obstacle = 1;
     while(obstacle == 1)
     {
         if(blueToothSerial.available())   // Check if there's any data sent from the remote Bluetooth shield
@@ -110,6 +112,9 @@ void loop() {
               else if (recvChar == 'g'){
               obstacle = 0;
             }
+            else if (recvChar == 'b'){
+              back = 1;
+            }
             else{
               path[index] = ' ';
               index += 1;
@@ -133,13 +138,13 @@ void loop() {
           delay(100);
       }
       //move right
-      else if (irLeft == 1 && irRight==0){
+      else if (irLeft == 0 && irRight==1){
               servoLeft.writeMicroseconds(1700);
               servoRight.writeMicroseconds(1500);
               delay(300);
       }
       //move left
-      else if (irLeft == 0 && irRight == 1){
+      else if (irLeft == 1 && irRight == 0){
               servoLeft.writeMicroseconds(1500);
               servoRight.writeMicroseconds(1300);
               delay(300);
@@ -148,42 +153,40 @@ void loop() {
       else if (irLeft == 0 && irRight == 0){
           servoLeft.writeMicroseconds(1500);
           servoRight.writeMicroseconds(1500);
-          terminate += 1;
         }
     }
-    if (terminate == 2){
-        for (int i=0; i<=index; i++){
-            if(path [i] == ' '){
-            servoLeft.writeMicroseconds(1700);
-            servoRight.writeMicroseconds(1300);
-            }
-            else if(path[i] == 'q'){
-              servoLeft.writeMicroseconds(1700);
-              servoRight.writeMicroseconds(1500);
-              delay(300);
-              }
-             else if (path[i] == 'w'){
-              servoLeft.writeMicroseconds(1500);
-              servoRight.writeMicroseconds(1300);
-              delay(300);
-              }
-             else if (path[i] == 'e'){
-              servoLeft.writeMicroseconds(1300);
-              servoRight.writeMicroseconds(1500);
-              delay(300);
-              servoLeft.writeMicroseconds(1300);
-              servoRight.writeMicroseconds(1700);
-              delay(300);
-              }
-              else if (path[i] == 'r'){
-              servoLeft.writeMicroseconds(1500);
-              servoRight.writeMicroseconds(1700);
-              delay(300);
-              servoLeft.writeMicroseconds(1300);
-              servoRight.writeMicroseconds(1700);
-              delay(300);
-                }
+    if (back == 1 && obstacle == 1){
+          if(path [i] == ' '){
+          servoLeft.writeMicroseconds(1700);
+          servoRight.writeMicroseconds(1300);
           }
+          else if(path[i] == 'q'){
+            servoLeft.writeMicroseconds(1700);
+            servoRight.writeMicroseconds(1500);
+            delay(300);
+            }
+            else if (path[i] == 'w'){
+            servoLeft.writeMicroseconds(1500);
+            servoRight.writeMicroseconds(1300);
+            delay(300);
+            }
+            else if (path[i] == 'e'){
+            servoLeft.writeMicroseconds(1300);
+            servoRight.writeMicroseconds(1500);
+            delay(300);
+            servoLeft.writeMicroseconds(1300);
+            servoRight.writeMicroseconds(1700);
+            delay(300);
+            }
+            else if (path[i] == 'r'){
+            servoLeft.writeMicroseconds(1500);
+            servoRight.writeMicroseconds(1700);
+            delay(300);
+            servoLeft.writeMicroseconds(1300);
+            servoRight.writeMicroseconds(1700);
+            delay(300);
+              }
+          i += 1;
       }
 }
 
@@ -215,6 +218,7 @@ void setupBlueToothConnection()
     
     Serial.println("The slave bluetooth is inquirable!");
 }
+
 int irDetect(int irLedPin, int irReceiverPin  , long frequency) {
   tone(irLedPin, frequency, 8);
   delay(1);
